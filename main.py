@@ -1,3 +1,7 @@
+"""basic resume template
+https://www.overleaf.com/latex/templates/iiit-vadodara-resume/crrpnvzhktfs
+"""
+
 import subprocess
 import random
 import os
@@ -84,9 +88,7 @@ def generate_resume_data():
     }
 
 
-# ============ 2. LaTeX 特殊字符转义 ============
 def escape_latex(text):
-    """转义 LaTeX 特殊字符"""
     replacements = {
         '%': '\\%',
         '$': '\\$',
@@ -325,11 +327,7 @@ def generate_latex(data):
     return latex_content
 
 
-# ============ 3. 编译 PDF ============
 def compile_pdf(tex_file, output_name="resume"):
-    print(f"🔄 开始编译 PDF...")
-    
-
     result1 = subprocess.run(
         ["pdflatex", "-interaction=nonstopmode", tex_file],
         capture_output=True,
@@ -372,7 +370,6 @@ def compile_pdf(tex_file, output_name="resume"):
         return False
 
 
-# ============ 主程序 ============
 if __name__ == "__main__":
 
     resume_data = generate_resume_data()    

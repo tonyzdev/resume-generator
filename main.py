@@ -5,30 +5,103 @@ https://www.overleaf.com/latex/templates/iiit-vadodara-resume/crrpnvzhktfs
 import subprocess
 import random
 import os
+import json
+import csv
+import argparse
+from datetime import datetime
 from faker import Faker
 
-fake = Faker()
+fake = Faker('en_US')
 
-def generate_resume_data():
+def load_universities():
+    universities = []
+    with open('us_news.csv', 'r', encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if row['University Name'] and row['State']:
+                # 目前用的就是2026年的了，可以更具需要来改
+                try:
+                    rank = int(float(row['2026'])) if row['2026'] else 9999
+                except:
+                    rank = 9999
+                universities.append({
+                    'University Name': row['University Name'],
+                    'State': row['State'],
+                    'rank': rank
+                })
+    return universities
+
+def get_universities_by_tier(tier='top'):
+    """
+    Get universities by tier:
+    - 'top': rank 1-50 (优秀)
+    - 'medium': rank 51-100 (中等)
+    - 'low': rank 101+ (一般)
+    """
+    if tier == 'top':
+        return [u for u in UNIVERSITIES if u['rank'] <= 50]
+    elif tier == 'medium':
+        return [u for u in UNIVERSITIES if 51 <= u['rank'] <= 100]
+    elif tier == 'low':
+        return [u for u in UNIVERSITIES if u['rank'] > 100]
+    else:
+        return UNIVERSITIES  # all
+
+# Load majors data
+def load_majors():
+    with open('majors_flat.json', 'r', encoding='utf-8') as f:
+        return json.load(f)
+
+UNIVERSITIES = load_universities()
+MAJORS = load_majors()
+
+def generate_resume_data(tier='top'):
+    """
+    Generate resume data with university tier:
+    - 'top': rank 1-50 (优秀)
+    - 'medium': rank 51-100 (中等)
+    - 'low': rank 101+ (一般)
+    """
+
+    tier_universities = get_universities_by_tier(tier)
+    if not tier_universities:
+        tier_universities = UNIVERSITIES  
+    university = random.choice(tier_universities)
+    uni_name = university['University Name']
+    uni_state = university['State']
+    uni_city = fake.city()  # 城市还是用的fake的随机，而不是学校的所在地 这个可能需要再改一下
+
+    major = random.choice(MAJORS)
+    major_name = major['name']
+    degree_type = random.choice(["B.S.", "B.A.", "M.S.", "M.A.", "Ph.D."])
+    course = f"{degree_type} in {major_name}"
+
+    grad_year = random.randint(2020, 2025)
+    start_year = grad_year - random.choice([4, 2, 5])  # 4 years for BS, 2 for MS, 5 for PhD
+
     return {
         "name": fake.name(),
-        "course": random.choice(["B.Tech in Computer Science", "B.Tech in IT", "M.Tech in AI", "B.Tech in ECE"]),
+        "course": course,
         "roll": str(random.randint(2020001, 2024999)),
         "phone": fake.msisdn()[:10],
         "email": fake.email(),
-        
+        "university": uni_name,
+        "location": f"{uni_city}, {uni_state}",
+
         "education": [
             {
-                "school": "Indian Institute of Information Technology",
-                "score": f"CGPA: {round(random.uniform(7.5, 9.8), 2)}",
-                "degree": "B.Tech in Computer Science",
-                "year": "2020-2024"
+                "school": uni_name,
+                "score": f"GPA: {round(random.uniform(3.0, 4.0), 2)}/4.0",
+                "degree": course,
+                "year": f"{start_year}-{grad_year}",
+                "location": f"{uni_city}, {uni_state}"
             },
             {
-                "school": fake.company() + " Senior Secondary School",
-                "score": f"Percentage: {random.randint(75, 98)}%",
-                "degree": "Higher Secondary (XII)",
-                "year": "2020"
+                "school": fake.company() + " High School",
+                "score": f"GPA: {round(random.uniform(3.5, 4.0), 2)}/4.0",
+                "degree": "High School Diploma",
+                "year": str(start_year),
+                "location": f"{fake.city()}, {fake.state_abbr()}"
             },
         ],
         
@@ -268,9 +341,9 @@ def generate_latex(data):
 \parbox{\dimexpr\linewidth\relax}{
 \begin{tabularx}{\linewidth}{L r} \\
   \textbf{\Large """ + escape_latex(data["name"]) + r"""} & {\raisebox{0.0\height}{\footnotesize \faPhone}\ +1-""" + data["phone"] + r"""}\\
-  {Roll No.: """ + data["roll"] + r"""} & \href{mailto:""" + data["email"] + r"""}{\raisebox{0.0\height}{\footnotesize \faEnvelope}\ {""" + data["email"] + r"""}} \\
+  {""" + escape_latex(data["location"]) + r"""} & \href{mailto:""" + data["email"] + r"""}{\raisebox{0.0\height}{\footnotesize \faEnvelope}\ {""" + data["email"] + r"""}} \\
   """ + escape_latex(data["course"]) + r""" & \href{https://github.com/}{\raisebox{0.0\height}{\footnotesize \faGithub}\ {GitHub Profile}} \\
-  {Indian Institute Of Information Technology} & \href{https://linkedin.com/}{\raisebox{0.0\height}{\footnotesize \faLinkedin}\ {LinkedIn Profile}}
+  {""" + escape_latex(data["university"]) + r"""} & \href{https://linkedin.com/}{\raisebox{0.0\height}{\footnotesize \faLinkedin}\ {LinkedIn Profile}}
 \end{tabularx}
 }
 
@@ -328,36 +401,39 @@ def generate_latex(data):
 
 
 def compile_pdf(tex_file, output_name="resume"):
+    # Get directory of tex file for output
+    output_dir = os.path.dirname(tex_file) or "."
+
     result1 = subprocess.run(
-        ["pdflatex", "-interaction=nonstopmode", tex_file],
+        ["pdflatex", "-interaction=nonstopmode", f"-output-directory={output_dir}", tex_file],
         capture_output=True,
         text=True
     )
-    
+
     if result1.returncode != 0:
         print(f"❌ 第一次编译失败！")
         print(f"错误信息:\n{result1.stderr}")
         print(f"输出信息:\n{result1.stdout}")
         return False
-    
+
 
     result2 = subprocess.run(
-        ["pdflatex", "-interaction=nonstopmode", tex_file],
+        ["pdflatex", "-interaction=nonstopmode", f"-output-directory={output_dir}", tex_file],
         capture_output=True,
         text=True
     )
-    
+
     if result2.returncode != 0:
         print(f"❌ 第二次编译失败！")
         print(f"错误信息:\n{result2.stderr}")
         print(f"输出信息:\n{result2.stdout}")
         return False
-    
+
 
     pdf_file = tex_file.replace(".tex", ".pdf")
     if os.path.exists(pdf_file):
         print(f"✅ PDF 生成完成: {pdf_file}")
-        
+
 
         for ext in [".aux", ".log", ".out"]:
             try:
@@ -371,17 +447,30 @@ def compile_pdf(tex_file, output_name="resume"):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Generate random resume')
+    parser.add_argument('--tier', '-t', type=str, default='top',
+                        choices=['top', 'medium', 'low'],
+                        help='University tier: top (1-50), medium (51-100), low (100+)')
+    args = parser.parse_args()
 
-    resume_data = generate_resume_data()    
+    resume_data = generate_resume_data(tier=args.tier)
     latex_content = generate_latex(resume_data)
-    
-    output_tex = "resume_output.tex"
+
+    output_dir = "resumes" # 都放到子目录里
+    os.makedirs(output_dir, exist_ok=True)
+
+    name_clean = resume_data['name'].replace(' ', '_')
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f"{name_clean}_{args.tier}_{timestamp}"
+
+    output_tex = os.path.join(output_dir, f"{filename}.tex")
     with open(output_tex, "w", encoding="utf-8") as f:
         f.write(latex_content)
-    
+
     print(f"📝 生成的简历信息:")
     print(f"   姓名: {resume_data['name']}")
+    print(f"   大学: {resume_data['university']} (tier: {args.tier})")
     print(f"   专业: {resume_data['course']}")
     print(f"   邮箱: {resume_data['email']}")
-    
+
     compile_pdf(output_tex)

@@ -1,0 +1,7 @@
+chrome_data/
+.env
+__pycache__/
+*.pyc
+node_modules/
+resumes/
+resume_tracking.csv

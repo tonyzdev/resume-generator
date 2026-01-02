@@ -25,6 +25,8 @@ def extract_job_from_html(html_content: str, filename: str) -> dict:
         'job_type': None,
         'scraped_at': None,
         'full_description': None,
+        'apply_method': None,  # "indeed_apply" or "external_apply"
+        'apply_url': None,     # Apply URL (for external apply)
     }
 
     if head_match:
@@ -96,6 +98,37 @@ def extract_job_from_html(html_content: str, filename: str) -> dict:
         if desc_elem:
             # Get text content, preserving some structure
             job_data['full_description'] = clean_description(desc_elem)
+
+        # Extract apply method and URL
+        # Check for Indeed Easy Apply button
+        indeed_apply_btn = inner_soup.find('button', id='indeedApplyButton')
+        if indeed_apply_btn:
+            job_data['apply_method'] = 'indeed_apply'
+            job_data['apply_url'] = None  # Indeed Apply uses internal system
+        else:
+            # Check for external apply button (Apply on company site)
+            external_apply_btn = inner_soup.find('button', string=re.compile(r'Apply on company site', re.IGNORECASE))
+            if not external_apply_btn:
+                # Try finding by content
+                external_apply_btn = inner_soup.find('button', attrs={'contenthtml': re.compile(r'Apply on company site', re.IGNORECASE)})
+
+            if external_apply_btn:
+                job_data['apply_method'] = 'external_apply'
+                # Get the href attribute from the button
+                href = external_apply_btn.get('href', '')
+                if href:
+                    # Unescape HTML entities in URL
+                    job_data['apply_url'] = unescape(href)
+            else:
+                # Default fallback - check raw HTML for patterns
+                if 'indeedApplyButton' in html_content:
+                    job_data['apply_method'] = 'indeed_apply'
+                elif 'Apply on company site' in html_content:
+                    job_data['apply_method'] = 'external_apply'
+                    # Try to extract URL from raw HTML
+                    url_match = re.search(r'href=\\"(https://www\.indeed\.com/applystart[^"\\]+)\\"', html_content)
+                    if url_match:
+                        job_data['apply_url'] = unescape(url_match.group(1).replace('\\u0026', '&'))
 
     return job_data
 

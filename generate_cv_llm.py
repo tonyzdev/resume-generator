@@ -6,7 +6,18 @@ Similar to the ChatGPT conversation workflow
 import json
 import os
 import glob
+import random
 from llm_client import call_llm, call_llm_json
+
+
+# Skill bias types - each person has a different focus area
+SKILL_BIASES = [
+    "technical-heavy",      # Strong in programming, databases
+    "analytics-heavy",      # Strong in statistics, data analysis
+    "business-heavy",       # Strong in communication, business tools
+    "visualization-heavy",  # Strong in dashboards, reporting
+    "database-heavy",       # Strong in SQL, data engineering
+]
 
 
 def parse_job_requirements(job_desc: str) -> dict:
@@ -179,41 +190,80 @@ The project should:
     return call_llm_json(prompt, system_prompt, temperature=0.7)
 
 
-def generate_skills(job_info: dict, include_ai: bool = True) -> dict:
+def generate_skills(job_info: dict, include_ai: bool = True, experience: dict = None, project: dict = None, skill_bias: str = None) -> dict:
     """
-    Generate technical skills section
-    Similar to ChatGPT conversation step 6
+    Generate technical skills section based on experience and project
+    Skills should be derived from what the person actually did, not just job requirements
     """
+    # Pick a random skill bias if not provided
+    if skill_bias is None:
+        skill_bias = random.choice(SKILL_BIASES)
+
     ai_instruction = ""
     if include_ai:
-        ai_instruction = "Include AI-related skills like 'Generative AI', 'LLM prompting', 'ChatGPT/Copilot' etc."
+        ai_instruction = "Include 1-2 AI-related skills like 'Generative AI', 'LLM prompting', 'ChatGPT/Copilot' in appropriate categories."
     else:
         ai_instruction = "Do NOT include any AI-related skills. Focus only on traditional technical skills."
 
-    prompt = f"""Generate a technical skills section for a student applying to this job.
+    # Extract what the person actually did
+    experience_desc = ""
+    if experience:
+        experience_desc = f"""
+Experience:
+- Role: {experience.get('role', '')}
+- Company: {experience.get('company', '')}
+- Work done: {'; '.join(experience.get('items', []))}
+"""
+
+    project_desc = ""
+    if project:
+        project_desc = f"""
+Project:
+- Name: {project.get('name', '')}
+- Description: {project.get('description', '')}
+- Details: {'; '.join(project.get('items', []))}
+"""
+
+    prompt = f"""Generate a technical skills section for a student based on their ACTUAL experience and projects.
+
+IMPORTANT RULES:
+1. Skills should be DERIVED from what the person actually did in their experience and project
+2. This person has a "{skill_bias}" background - emphasize skills in that area
+3. Do NOT include all the job requirements - real candidates don't have 100% match
+4. Include some skills that are slightly tangential or from coursework
+5. Each person should have a UNIQUE combination of skills
 {ai_instruction}
 
-Job Title: {job_info.get('job_title', 'Data Analyst')}
-Core Skills Required: {', '.join(job_info.get('core_skills', []))}
-Preferred Skills: {', '.join(job_info.get('preferred_skills', []))}
+{experience_desc}
+{project_desc}
+
+Job they are applying for: {job_info.get('job_title', 'Data Analyst')}
+Job core skills (but don't include ALL of them, only 60-70%): {', '.join(job_info.get('core_skills', []))}
+
+Skill Bias "{skill_bias}" means:
+- technical-heavy: Strong in Python, R, programming, scripting
+- analytics-heavy: Strong in statistics, modeling, quantitative analysis
+- business-heavy: Strong in Excel, PowerPoint, communication, stakeholder management
+- visualization-heavy: Strong in Tableau, Power BI, dashboards, data storytelling
+- database-heavy: Strong in SQL, ETL, data warehousing, database design
 
 Return JSON format:
 {{
-    "languages": "Python, SQL, R, JavaScript",
-    "tools": "Git, VS Code, Jupyter, Excel",
-    "frameworks": "Pandas, NumPy, Scikit-learn",
-    "databases": "MySQL, PostgreSQL, MongoDB",
-    "soft_skills": "Problem Solving, Communication, Teamwork",
-    "coursework": "Data Structures, Statistics, Database Systems",
-    "interests": "Data Visualization, Business Intelligence"
+    "languages": "3-5 programming languages based on experience",
+    "tools": "4-6 tools the person actually used",
+    "frameworks": "3-5 frameworks/libraries from their work",
+    "databases": "2-4 databases they worked with",
+    "soft_skills": "3-4 soft skills demonstrated in their experience",
+    "coursework": "4-5 relevant courses",
+    "interests": "2-3 professional interests"
 }}
 
-Select 4-6 relevant skills for each category based on the job requirements.
+Make each category reflect this person's UNIQUE background and skill bias.
 """
 
-    system_prompt = "You are a career counselor helping students highlight their technical skills."
+    system_prompt = "You are a career counselor helping students create authentic, personalized skill sections that reflect their actual experience."
 
-    return call_llm_json(prompt, system_prompt, temperature=0.5)
+    return call_llm_json(prompt, system_prompt, temperature=0.8)
 
 
 def generate_position(job_info: dict) -> dict:

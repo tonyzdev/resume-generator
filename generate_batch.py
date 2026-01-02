@@ -25,6 +25,7 @@ from generate_cv_llm import (
     generate_skills,
     generate_position,
     generate_achievement,
+    SKILL_BIASES,
 )
 
 fake = Faker('en_US')
@@ -531,8 +532,12 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
     for person_num in range(1, count + 1):
         person_id = f"job{job_index}_p{person_num}_{timestamp}"
 
+        # Assign a unique skill bias to this person
+        skill_bias = SKILL_BIASES[(person_num - 1) % len(SKILL_BIASES)]
+
         print(f"\n{'─'*50}")
         print(f"Person {person_num}/{count}")
+        print(f"Skill Bias: {skill_bias}")
         print(f"{'─'*50}")
 
         # Generate shared personal info (no API needed)
@@ -584,7 +589,14 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
                 experience = generate_experience_without_ai(job_info)
                 project = generate_project_without_ai(job_info)
 
-            skills = generate_skills(job_info, include_ai=include_ai)
+            # Generate skills based on ACTUAL experience and project content
+            skills = generate_skills(
+                job_info,
+                include_ai=include_ai,
+                experience=experience,
+                project=project,
+                skill_bias=skill_bias
+            )
 
             # Build resume data
             resume_data = {
@@ -595,6 +607,7 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
                 "email": email,
                 "university": uni_name,
                 "location": f"{uni_city}, {uni_state}",
+                "skill_bias": skill_bias,  # Track the skill bias
                 "education": [{
                     "school": uni_name,
                     "score": f"GPA: {round(random.uniform(3.2, 4.0), 2)}/4.0",

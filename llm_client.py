@@ -7,6 +7,13 @@ from openai import OpenAI
 import json
 import os
 
+# Load .env file if exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv not installed, use system env vars
+
 # API Configuration - load from environment variables
 API_KEY = os.getenv("OPENAI_API_KEY", "your-api-key-here")
 BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")

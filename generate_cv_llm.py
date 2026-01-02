@@ -190,20 +190,16 @@ The project should:
     return call_llm_json(prompt, system_prompt, temperature=0.7)
 
 
-def generate_skills(job_info: dict, include_ai: bool = True, experience: dict = None, project: dict = None, skill_bias: str = None) -> dict:
+def generate_skills(job_info: dict, experience: dict = None, project: dict = None, skill_bias: str = None) -> dict:
     """
     Generate technical skills section based on experience and project
-    Skills should be derived from what the person actually did, not just job requirements
+
+    IMPORTANT: Skills should NEVER include AI-related content (per experiment design)
+    AI signals should only appear in Experience or Project narratives, not in Skills.
     """
     # Pick a random skill bias if not provided
     if skill_bias is None:
         skill_bias = random.choice(SKILL_BIASES)
-
-    ai_instruction = ""
-    if include_ai:
-        ai_instruction = "Include 1-2 AI-related skills like 'Generative AI', 'LLM prompting', 'ChatGPT/Copilot' in appropriate categories."
-    else:
-        ai_instruction = "Do NOT include any AI-related skills. Focus only on traditional technical skills."
 
     # Extract what the person actually did
     experience_desc = ""
@@ -226,13 +222,17 @@ Project:
 
     prompt = f"""Generate a technical skills section for a student based on their ACTUAL experience and projects.
 
-IMPORTANT RULES:
+CRITICAL RULES:
 1. Skills should be DERIVED from what the person actually did in their experience and project
 2. This person has a "{skill_bias}" background - emphasize skills in that area
 3. Do NOT include all the job requirements - real candidates don't have 100% match
 4. Include some skills that are slightly tangential or from coursework
 5. Each person should have a UNIQUE combination of skills
-{ai_instruction}
+
+**ABSOLUTELY NO AI-RELATED SKILLS ALLOWED:**
+- Do NOT include: AI, Machine Learning, Deep Learning, LLM, GPT, ChatGPT, Copilot, Generative AI, NLP, Neural Networks, TensorFlow, PyTorch, Prompt Engineering, or any AI-related terms
+- Even if the experience/project mentions AI tools, do NOT list them in skills
+- Focus only on traditional technical skills
 
 {experience_desc}
 {project_desc}
@@ -250,18 +250,19 @@ Skill Bias "{skill_bias}" means:
 Return JSON format:
 {{
     "languages": "3-5 programming languages based on experience",
-    "tools": "4-6 tools the person actually used",
-    "frameworks": "3-5 frameworks/libraries from their work",
+    "tools": "4-6 tools the person actually used (NO AI tools)",
+    "frameworks": "3-5 frameworks/libraries from their work (NO AI frameworks)",
     "databases": "2-4 databases they worked with",
     "soft_skills": "3-4 soft skills demonstrated in their experience",
-    "coursework": "4-5 relevant courses",
-    "interests": "2-3 professional interests"
+    "coursework": "4-5 relevant courses (NO AI/ML courses)",
+    "interests": "2-3 professional interests (NO AI-related interests)"
 }}
 
 Make each category reflect this person's UNIQUE background and skill bias.
+Remember: NO AI-related content in any field!
 """
 
-    system_prompt = "You are a career counselor helping students create authentic, personalized skill sections that reflect their actual experience."
+    system_prompt = "You are a career counselor helping students create authentic, personalized skill sections. You must NEVER include AI-related skills, tools, or interests."
 
     return call_llm_json(prompt, system_prompt, temperature=0.8)
 
@@ -269,7 +270,8 @@ Make each category reflect this person's UNIQUE background and skill bias.
 def generate_position(job_info: dict) -> dict:
     """
     Generate a position of responsibility (extracurricular)
-    Similar to ChatGPT conversation step 7
+
+    IMPORTANT: Must NOT include any AI-related content per experiment design.
     """
     prompt = f"""Generate a realistic extracurricular position of responsibility for a student.
 This should be related to the job field but in an academic/club context.
@@ -277,17 +279,22 @@ This should be related to the job field but in an academic/club context.
 Job Title: {job_info.get('job_title', 'Data Analyst')}
 Industry: {job_info.get('industry', 'General')}
 
+**CRITICAL: Do NOT include any AI-related content:**
+- No AI clubs, ML groups, or AI-related organizations
+- No AI-related responsibilities or tasks
+- Focus on traditional academic/professional organizations
+
 Return JSON format:
 {{
     "title": "Position Title",
-    "org": "Organization/Club Name",
+    "org": "Organization/Club Name (NO AI-related orgs)",
     "tenure": "2023-2024"
 }}
 
-Examples: Student Association Member, Data Science Club President, etc.
+Examples: Data Analytics Club Treasurer, Business Society VP, Statistics Tutoring Lead, etc.
 """
 
-    system_prompt = "You are helping students showcase their leadership experience."
+    system_prompt = "You are helping students showcase their leadership experience. Never include AI-related organizations or responsibilities."
 
     return call_llm_json(prompt, system_prompt, temperature=0.7)
 
@@ -295,24 +302,30 @@ Examples: Student Association Member, Data Science Club President, etc.
 def generate_achievement(job_info: dict) -> dict:
     """
     Generate an academic achievement
-    Similar to ChatGPT conversation step 8
+
+    IMPORTANT: Must NOT include any AI-related content per experiment design.
     """
     prompt = f"""Generate a realistic academic achievement for a student applying to this job.
 
 Job Title: {job_info.get('job_title', 'Data Analyst')}
 Major: {', '.join(job_info.get('major_families', ['Computer Science']))}
 
+**CRITICAL: Do NOT include any AI-related achievements:**
+- No AI competitions, hackathons, or awards
+- No machine learning projects or recognitions
+- Focus on traditional academic achievements
+
 Return JSON format:
 {{
     "title": "Achievement Title (e.g., 'Dean's List', '1st Place')",
-    "desc": "Brief description or award name",
+    "desc": "Brief description or award name (NO AI-related)",
     "date": "2024"
 }}
 
-Keep it realistic and academic (scholarship, competition, honor roll, etc.)
+Keep it realistic and academic (scholarship, case competition, honor roll, analytics competition, etc.)
 """
 
-    system_prompt = "You are helping students highlight their achievements."
+    system_prompt = "You are helping students highlight their achievements. Never include AI-related achievements or competitions."
 
     return call_llm_json(prompt, system_prompt, temperature=0.7)
 

@@ -517,7 +517,8 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
     print(f"{'='*70}")
     print(f"Job #{job_index}: {job_title} @ {company}")
     print(f"Location: {location}")
-    print(f"Generating: {count} people x 2 versions = {count * 2} resumes")
+    print(f"Generating: {count} people x 3 treatments = {count * 3} resumes")
+    print(f"Treatments: control, ai_course (AI in Experience), ai_project (AI in Project)")
     print(f"Tier: {tier}")
     print(f"{'='*70}\n")
 
@@ -576,23 +577,35 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
         position = generate_position(job_info)
         achievement = generate_achievement(job_info)
 
-        # Generate both versions
-        for include_ai in [True, False]:
-            version = "with_ai" if include_ai else "no_ai"
+        # Generate three treatment groups:
+        # - control: No AI content anywhere
+        # - ai_course: AI only in Experience
+        # - ai_project: AI only in Project
+        treatment_groups = [
+            {"name": "control", "exp_ai": False, "proj_ai": False},
+            {"name": "ai_course", "exp_ai": True, "proj_ai": False},
+            {"name": "ai_project", "exp_ai": False, "proj_ai": True},
+        ]
+
+        for treatment in treatment_groups:
+            version = treatment["name"]
             print(f"\n   Generating [{version}] version...")
 
-            # Generate version-specific content (3 API calls per version)
-            if include_ai:
+            # Generate Experience (with or without AI based on treatment)
+            if treatment["exp_ai"]:
                 experience = generate_experience_with_ai(job_info)
-                project = generate_project_with_ai(job_info)
             else:
                 experience = generate_experience_without_ai(job_info)
+
+            # Generate Project (with or without AI based on treatment)
+            if treatment["proj_ai"]:
+                project = generate_project_with_ai(job_info)
+            else:
                 project = generate_project_without_ai(job_info)
 
-            # Generate skills based on ACTUAL experience and project content
+            # Generate skills - NEVER includes AI (per experiment design)
             skills = generate_skills(
                 job_info,
-                include_ai=include_ai,
                 experience=experience,
                 project=project,
                 skill_bias=skill_bias
@@ -607,7 +620,8 @@ def generate_batch(job_index, count, tier='top', output_dir='resumes'):
                 "email": email,
                 "university": uni_name,
                 "location": f"{uni_city}, {uni_state}",
-                "skill_bias": skill_bias,  # Track the skill bias
+                "skill_bias": skill_bias,
+                "treatment": version,  # Track the treatment group
                 "education": [{
                     "school": uni_name,
                     "score": f"GPA: {round(random.uniform(3.2, 4.0), 2)}/4.0",

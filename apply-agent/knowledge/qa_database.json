@@ -1,0 +1,77 @@
+[
+  {
+    "category": "work_authorization",
+    "keywords": ["sponsorship", "visa", "authorized", "legally", "work permit"],
+    "answer": "No, I do not require sponsorship. I am authorized to work in the USA."
+  },
+  {
+    "category": "onsite",
+    "keywords": ["onsite", "on-site", "in-office", "in office", "days a week", "commute", "relocate"],
+    "answer": "Yes, I can commit to working onsite as required."
+  },
+  {
+    "category": "remote",
+    "keywords": ["remote", "work from home", "hybrid"],
+    "answer": "Yes, I am comfortable with remote/hybrid work arrangements and have experience working effectively in such environments."
+  },
+  {
+    "category": "salary",
+    "keywords": ["salary", "compensation", "pay", "hourly rate", "desired pay"],
+    "answer": "I am open to discussing compensation based on the full scope of the role and benefits package."
+  },
+  {
+    "category": "start_date",
+    "keywords": ["start date", "when can you start", "available to start", "notice period"],
+    "answer": "I can start within 2 weeks of receiving an offer."
+  },
+  {
+    "category": "experience",
+    "keywords": ["years of experience", "how many years", "experience with"],
+    "answer": "Yes, I have relevant experience in this area as detailed in my resume."
+  },
+  {
+    "category": "excel",
+    "keywords": ["excel", "spreadsheet", "pivot", "vlookup", "formulas"],
+    "answer": "Yes, I am highly proficient in Excel including advanced functions like VLOOKUP, INDEX-MATCH, pivot tables, Power Query, and data analysis."
+  },
+  {
+    "category": "sql",
+    "keywords": ["sql", "database", "query", "queries"],
+    "answer": "Yes, I have strong SQL skills including complex queries, joins, window functions, and database optimization."
+  },
+  {
+    "category": "python",
+    "keywords": ["python", "programming", "coding", "script"],
+    "answer": "Yes, I am proficient in Python for data analysis, automation, and scripting."
+  },
+  {
+    "category": "bi_tools",
+    "keywords": ["tableau", "power bi", "looker", "dashboard", "visualization", "bi tool"],
+    "answer": "Yes, I have experience with BI tools including Tableau and Power BI for creating interactive dashboards and reports."
+  },
+  {
+    "category": "smartsheet",
+    "keywords": ["smartsheet", "workflow", "automation"],
+    "answer": "Yes, I have experience with Smartsheet including building workflows, automations, cross-sheet formulas, and dashboard reporting."
+  },
+  {
+    "category": "notifications",
+    "keywords": ["sms", "text message", "phone call", "contact you", "notifications"],
+    "answer": "Yes"
+  },
+  {
+    "category": "background_check",
+    "keywords": ["background check", "drug test", "screening"],
+    "answer": "Yes, I consent to a background check as part of the hiring process."
+  },
+  {
+    "category": "previous_application",
+    "keywords": ["applied before", "previously applied", "worked here"],
+    "answer": "No, this is my first time applying to this company."
+  },
+  {
+    "category": "referral",
+    "keywords": ["referral", "referred by", "how did you hear"],
+    "answer": "I found this position through Indeed job search."
+  }
+]

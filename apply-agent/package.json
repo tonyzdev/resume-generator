@@ -1,0 +1,28 @@
+{
+  "name": "indeed-auto-apply-agent",
+  "version": "1.0.0",
+  "description": "Intelligent Indeed SmartApply automation agent with LLM-powered form filling",
+  "type": "module",
+  "main": "main.js",
+  "scripts": {
+    "apply": "node main.js",
+    "test": "echo \"Tests not yet implemented\" && exit 0"
+  },
+  "keywords": [
+    "indeed",
+    "job-application",
+    "automation",
+    "playwright",
+    "mcp",
+    "llm"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "puppeteer-core": "^24.36.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

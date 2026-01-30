@@ -1,0 +1,27 @@
+{
+  "llm": {
+    "provider": "openai",
+    "apiKey": "your-api-key-here",
+    "apiBase": "https://api.openai.com/v1",
+    "model": "gpt-4",
+    "temperature": 0.3,
+    "maxTokens": 500
+  },
+  "chrome": {
+    "cdpEndpoint": "http://localhost:9222"
+  },
+  "application": {
+    "stepDelay": 2,
+    "actuallySubmit": false,
+    "interactiveMode": false,
+    "maxRetries": 3
+  },
+  "resume": {
+    "defaultPath": "../resumes/",
+    "format": "json"
+  },
+  "logging": {
+    "level": "info",
+    "directory": "./logs"
+  }
+}
